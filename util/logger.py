@@ -1,7 +1,7 @@
 import logging
 import logging.config
 
-logging.config.fileConfig('logging.conf')
+logging.config.fileConfig('util/logging.conf')
 
 # debug < info < warning < error < critical
 
