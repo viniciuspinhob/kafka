@@ -20,12 +20,8 @@ class KafkaConnector:
             Returns a kafka producer, an instance to write messages to a kafka topic
     """
 
-    # static attributes
-    consumer_pool = {}
-    producer_pool = {}
-
     @classmethod
-    async def get_consumer(cls, brokers: str, topic: str, client_id: str) -> AIOKafkaConsumer:
+    async def get_consumer(brokers: str, topic: str, client_id: str) -> AIOKafkaConsumer:
         """
         Returns a kafka consumer, an instance to read messages from a kafka topic
 
@@ -69,7 +65,7 @@ class KafkaConnector:
                     "KafkaConnector", f"Error connecting to {brokers}/{topic}: {e}")
 
     @classmethod
-    async def get_producer(cls, brokers: str, client_id: str, compression: str = None) -> AIOKafkaProducer:
+    async def get_producer(brokers: str, client_id: str, compression: str = None) -> AIOKafkaProducer:
         """
         Returns a kafka producer, an instance to write messages to a kafka topic
 
@@ -80,26 +76,16 @@ class KafkaConnector:
         Returns:
             KafkaProducer: an instance of Kafka Producer
         """
-        # set the connection key
-        connection_key = f'{brokers}'
-        # check if there is a connection in the pool
-        if connection_key in cls.producer_pool.keys():
-            # TODO Check the connection status, validate it before return
+        try:
+            # return a new connection
+            connection = AIOKafkaProducer(
+                bootstrap_servers=brokers,
+                client_id=client_id,
+                value_serializer=lambda x: json.dumps(x).encode('utf-8'),
+                compression_type= compression
+            )
 
-            # return an existent connection
-            return cls.producer_pool[connection_key]
-        else:
-            try:
-                # return a new connection
-                connection = AIOKafkaProducer(
-                    bootstrap_servers=brokers,
-                    client_id=client_id,
-                    value_serializer=lambda x: json.dumps(x).encode('utf-8'),
-                    compression_type= compression
-                )
-                # add to the connection pool
-                cls.producer_pool[connection_key] = connection
-                await connection.start()
-            except Exception as e:
-                logger.log_e(
-                    "KafkaConnector", f"Error connecting to {brokers}: {e}")
+            await connection.start()
+        except Exception as e:
+            logger.log_e(
+                "KafkaConnector", f"Error connecting to {brokers}: {e}")

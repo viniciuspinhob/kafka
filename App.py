@@ -1,11 +1,10 @@
 import asyncio
 from os import environ
-from uuid import uuid4
 import pandas as pd
 from datetime import datetime
 
-from src.Kafka_producer import *
-import MessageBox
+from src.Kafka_connection import KafkaConnector
+from src.Kafka_producer import KafkaProducer
 
 from util import logger
 
@@ -16,79 +15,51 @@ TOPIC = environ("topic_name")
 BROKERS = "docker.host.internal:9092"
 
 
-async def kafka_writer(source: str, data):
+async def main():
+    data = get_data(path=DATA_PATH)
+    kafka_writer(data=data, topic=TOPIC)
 
-    if source == 'internal':
-        # Init kafka producers
-        KWriter_wind = Kafka_producer(
-                brokers = BROKERS,
-                topic = "wind_energy_source",
-                client_id = "KWriter_wind",
-                compression_type = "lz4"
+
+async def kafka_writer(data: pd.DataFrame, topic: str):
+    try:
+        kafka_producer = KafkaConnector.get_producer(
+            brokers=BROKERS,
+            client_id="dev_producer",
+            compression_type="lz4"
         )
-        for _, r in data['wind']:
-            KWriter_wind.write(
-                MessageBox(
-                    data=r.to_dict,
-                    metadata={
-                        "timestamp": datetime.utcnow().isoformat()
-                    }
-                )
+
+        for _, r in data.iterrows():
+            KafkaProducer.write(
+                connection=kafka_producer,
+                message=r.to_dict(),
+                topic=topic
             )
+            await asyncio.sleep(5)
 
-        # KWriter_solar = kafka_producer.connect_to_kafka(
-        #     parameters = {
-        #         'brokers': BROKER,
-        #         'topic': "wind_energy_source",
-        #         'client_id': "KWriter_solar",
-        #         "compression_type": "lz4"
-        #     }
-        # )
-
-        # iterate over data and send messages to kafka broker
-
-    # else:
-    #     KWriter_general = kafka_producer.connect_to_kafka(
-    #         parameters = {
-    #             'brokers': BROKER,
-    #             'topic': TOPIC if TOPIC else 'generic_topic',
-    #             'client_id': "KWriter_general",
-    #             "compression_type": "lz4"
-    #         }
-    #     )
-        
-    #     pass
-
-    return True
+    except Exception as e:
+        logger.log_e("kafka Writer",
+                     f"Error writing data to: {topic}")
 
 
-def get_data(source: str, path: str) -> dict:
-    start = datetime.now()
-    logger.log_i(
-            "Get data", f"Start to get data from source: {source} and path: {path}")
-    data = {}
+def get_data(path: str) -> pd.DataFrame:
+    try:
+        start = datetime.now()
+        logger.log_i("Get data",
+                     f"Start to get data from path: {path}")
 
-    if source == "internal":
-        df = pd.read_csv('data/intermittent-renewables-production-france_FILTERED.csv') 
-        
-        # Split data by energy source 
-        data['wind'] = df[df['Source'] == 'Wind']
-        data['solar'] = df[df['Source'] == 'Solar']
-
-
-    elif source == "external" and path:
         # read csv from path
-        pass
+        data = pd.read_csv(path)
 
-    else:
-        logger.log_e(
-            "Get data", f"Bad data source or path. Data source: {source}, path: {path}")
-    
-    logger.log_i(
-            "Get data", f"Finished getting data. Elapsed time {datetime.now()-start}")
+        logger.log_i("Get data",
+                     f"Finished getting data. Elapsed time {datetime.now()-start}")
+
+    except Exception as e:
+        logger.log_e("Get data",
+                     f"Error reading data from path: {path}")
+        return pd.DataFrame()
+
     return data
 
 
 if __name__ == 'main':
-    data = get_data(DATA_SOURCE, DATA_PATH)
-    kafka_writer(DATA_SOURCE, data)
+   main()
