@@ -50,6 +50,8 @@ def get_data(path: str) -> pd.DataFrame:
 
         # read csv from path
         data = pd.read_csv(path)
+        data.drop_duplicates(inplace=True)
+        data.dropna(inplace=True)
 
         logger.log_i("Get data",
                      f"Finished getting data. Elapsed time {datetime.now()-start}")
