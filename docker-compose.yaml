@@ -3,7 +3,7 @@ name: 'kafka_from_csv'
 
 services:
   kafka_from_csv:
-    image: kafka_from_csv:1.0.0
+    image: viniciuspinhob/kafka_from_csv:1.0.0
     hostname: kafka_client
     container_name: kafka_from_csv
     depends_on:
