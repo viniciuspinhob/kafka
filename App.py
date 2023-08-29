@@ -1,5 +1,5 @@
-import asyncio
 from os import environ
+from time import sleep
 import pandas as pd
 from datetime import datetime
 
@@ -14,32 +14,46 @@ from util import logger
 # TOPIC = environ("topic_name")
 # MSG_INTERVAL = int(environ("time_interval")) # seconds
 # BROKERS = environ("brokers")
-DATA_PATH = "intermittent-renewables-production-france_FILTERED.csv"
+DATA_PATH = "data/intermittent-renewables-production-france_FILTERED.csv"
 TOPIC = 'energy'
 MSG_INTERVAL = 2
-BROKERS = 'localhost:9092'
+BROKER = 'kafka:29092'
 
 
+def kafka_writer(data: pd.DataFrame, topic: str):
+    try:
+        start = datetime.now()
+        logger.log_i("Write data to Kafka",
+                     f"Start to write data to kafka topic: {topic}")
 
-def main():
-    data = get_data(path=DATA_PATH)
-    kafka_writer(data=data, topic=TOPIC)
-
-
-async def kafka_writer(data: pd.DataFrame, topic: str):
-    kafka_producer = await KafkaConnector.get_producer(
-        client_id=f"kfc_producer",
-        compression="lz4"
-    )
-
-    for _, r in data.iterrows():
-        KafkaProducer.write(
-            connection=kafka_producer,
-            message=r.to_dict(),
-            topic=topic
+        kafka_producer = KafkaConnector.get_producer(
+            brokers=BROKER,
+            client_id="kfc_producer",
+            compression="lz4"
         )
-        await asyncio.sleep(MSG_INTERVAL)
+        
+        if kafka_producer:
+            logger.log_i("Write data to Kafka",
+                     f"Created kafka producer: {kafka_producer}")
 
+            for _, r in data.iterrows():
+                KafkaProducer.write(
+                    connection=kafka_producer,
+                    message=r.to_dict(),
+                    topic=topic
+                )
+                sleep(MSG_INTERVAL)
+
+            kafka_producer.close()
+            logger.log_i("Write data to Kafka",
+                     f"Produced all messages do kafka topic: {topic}")
+
+        logger.log_i("Write data to Kafka",
+                     f"Elapsed time {datetime.now()-start}")
+
+    except Exception as e:
+        logger.log_e("Write data to Kafka",
+                     f"Error writing data to kafka topic: {topic}")
 
 
 def get_data(path: str) -> pd.DataFrame:
@@ -65,4 +79,5 @@ def get_data(path: str) -> pd.DataFrame:
 
 
 if __name__ == '__main__':
-   main()
+    data = get_data(path=DATA_PATH)
+    kafka_writer(data=data, topic=TOPIC)
