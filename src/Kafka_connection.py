@@ -34,35 +34,25 @@ class KafkaConnector:
         Returns:
             KafkaConsumer: an instance of Kafka Consumer
         """
-        # set the connection key
-        connection_key = f'{brokers}/{topic}'
         auto_offset_reset='earliest'
         enable_auto_commit=True
-        # check if there is a connection in the pool
-        if connection_key in cls.consumer_pool.keys():
-            # TO DO Check the connection status, validate it before return
 
-            # return an existent connection
-            return cls.consumer_pool[connection_key]
-        else:
-            try:
-                # return a new connection
-                connection = AIOKafkaConsumer(
-                    topic,
-                    bootstrap_servers=brokers,
-                    client_id=client_id,
-                    group_id=client_id,
-                    auto_offset_reset=auto_offset_reset,
-                    enable_auto_commit=enable_auto_commit,
-                    value_deserializer=lambda x: json.loads(x.decode('utf-8'))
-                )
-                # add to the connection pool
-                cls.consumer_pool[connection_key] = connection
-                await connection.start()
-                return connection
-            except Exception as e:
-                logger.log_e(
-                    "KafkaConnector", f"Error connecting to {brokers}/{topic}: {e}")
+        try:
+            # return a new connection
+            connection = AIOKafkaConsumer(
+                topic,
+                bootstrap_servers=brokers,
+                client_id=client_id,
+                group_id=client_id,
+                auto_offset_reset=auto_offset_reset,
+                enable_auto_commit=enable_auto_commit,
+                value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+            )
+            await connection.start()
+            return connection
+        except Exception as e:
+            logger.log_e(
+                "KafkaConnector", f"Error connecting to {brokers}/{topic}: {e}")
 
     @classmethod
     async def get_producer(brokers: str, client_id: str, compression: str = None) -> AIOKafkaProducer:
@@ -72,6 +62,8 @@ class KafkaConnector:
         Args:
             brokers (str): list of kafka brokers which means ip address and 
                 port of each one
+            client_id (str): id of the producer
+            compression (str): compression type
 
         Returns:
             KafkaProducer: an instance of Kafka Producer

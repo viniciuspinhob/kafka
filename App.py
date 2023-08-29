@@ -10,10 +10,15 @@ from util import logger
 
 
 # TODO: read data from outside the container
-DATA_PATH = environ("data_path")
-TOPIC = environ("topic_name")
-MSG_INTERVAL = int(environ("time_interval")) # seconds
-BROKERS = "docker.host.internal:9092"
+# DATA_PATH = environ("data_path")
+# TOPIC = environ("topic_name")
+# MSG_INTERVAL = int(environ("time_interval")) # seconds
+# BROKERS = environ("brokers")
+DATA_PATH = "intermittent-renewables-production-france_FILTERED.csv"
+TOPIC = 'energy'
+MSG_INTERVAL = 2
+BROKERS = 'localhost:9092'
+
 
 
 def main():
@@ -22,24 +27,19 @@ def main():
 
 
 async def kafka_writer(data: pd.DataFrame, topic: str):
-    try:
-        kafka_producer = KafkaConnector.get_producer(
-            brokers=BROKERS,
-            client_id="dev_producer",
-            compression_type="lz4"
+    kafka_producer = await KafkaConnector.get_producer(
+        client_id=f"kfc_producer",
+        compression="lz4"
+    )
+
+    for _, r in data.iterrows():
+        KafkaProducer.write(
+            connection=kafka_producer,
+            message=r.to_dict(),
+            topic=topic
         )
+        await asyncio.sleep(MSG_INTERVAL)
 
-        for _, r in data.iterrows():
-            KafkaProducer.write(
-                connection=kafka_producer,
-                message=r.to_dict(),
-                topic=topic
-            )
-            await asyncio.sleep(MSG_INTERVAL)
-
-    except Exception as e:
-        logger.log_e("kafka Writer",
-                     f"Error writing data to: {topic}")
 
 
 def get_data(path: str) -> pd.DataFrame:
@@ -64,5 +64,5 @@ def get_data(path: str) -> pd.DataFrame:
     return data
 
 
-if __name__ == 'main':
+if __name__ == '__main__':
    main()
