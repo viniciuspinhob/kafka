@@ -59,8 +59,6 @@ def get_data(path: str) -> pd.DataFrame:
         data.drop_duplicates(inplace=True)
         data.dropna(inplace=True)
 
-        # TODO: rmv index from df
-
         logger.log_i("Get data",
                      f"Finished getting data. Elapsed time {datetime.now()-start}")
 

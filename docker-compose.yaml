@@ -3,17 +3,17 @@ name: 'kafka_from_csv'
 
 services:
   kafka_from_csv:
-    image: kafka_from_csv:qa
+    image: kafka_from_csv:1.0.0
     hostname: kafka_client
     container_name: kafka_from_csv
     depends_on:
       - kafka
-    # environment:
-    #   topic_name: 'my_topic'
-    #   time_interval: '5'
-    #   brokers: 'localhost:9092'
-    #   data_path: 'path_to_csv'
-
+    environment:
+      topic_name: 'my_topic' # Desired topic name
+      time_interval: '5' # seconds
+      brokers: 'kafka:29092'
+    volumes: # path_to_your_file/file.csv:/data.csv  
+      - path_to_your_file/file.csv:/data.csv ## DO NOT CHANGE THE ENDING, KEEP '':/data.csv'
   
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.0
@@ -63,5 +63,5 @@ services:
       - KAFKA_CLUSTERS_0_NAME=kafka_from_csv
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
 
-
-  
+volumes:
+  data:
