@@ -31,7 +31,6 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
-      - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
@@ -51,7 +50,7 @@ services:
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: 'true'
       CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
-
+  
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.0
     container_name: kafka-ui
@@ -59,9 +58,8 @@ services:
       - "8082:8080"
     restart: always
     environment:
-      - KAFKA_CLUSTERS_0_NAME=CVR26022
+      - KAFKA_CLUSTERS_0_NAME=kafka_from_csv
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
-      #- KAFKA_CLUSTERS_0_SCHEMAREGISTRY=http://schema-registry:8081
 
 
   
