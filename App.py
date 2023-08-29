@@ -28,8 +28,7 @@ def kafka_writer(data: pd.DataFrame, topic: str):
 
         kafka_producer = KafkaConnector.get_producer(
             brokers=BROKER,
-            client_id="kfc_producer",
-            compression="lz4"
+            client_id="kfc_producer"
         )
         
         if kafka_producer:

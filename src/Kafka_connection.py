@@ -53,7 +53,7 @@ class KafkaConnector():
                 "KafkaConnector", f"Error connecting to {brokers}/{topic}: {e}")
 
     @classmethod
-    def get_producer(self, brokers: str, client_id: str, compression: str) -> KafkaProducer:
+    def get_producer(self, brokers: str, client_id: str) -> KafkaProducer:
         """
         Returns a kafka producer, an instance to write messages to a kafka topic
 
@@ -70,8 +70,7 @@ class KafkaConnector():
             connection = KafkaProducer(
                 bootstrap_servers=brokers,
                 client_id=client_id,
-                value_serializer=lambda x: json.dumps(x).encode('utf-8'),
-                compression_type=compression
+                value_serializer=lambda x: json.dumps(x).encode('utf-8')
             )
             return connection
         
