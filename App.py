@@ -1,6 +1,6 @@
+import pandas as pd
 from os import environ
 from time import sleep
-import pandas as pd
 from datetime import datetime
 
 from src.Kafka_connection import KafkaConnector
@@ -8,16 +8,9 @@ from src.Kafka_producer import KafkaWriter
 
 from util import logger
 
-
-# TODO: read data from outside the container
-# DATA_PATH = environ("data_path")
-# TOPIC = environ("topic_name")
-# MSG_INTERVAL = int(environ("time_interval")) # seconds
-# BROKERS = environ("brokers")
-DATA_PATH = "data/intermittent-renewables-production-france_FILTERED.csv"
-TOPIC = 'energy'
-MSG_INTERVAL = 2
-BROKER = 'kafka:29092'
+TOPIC = environ.get("topic_name")
+MSG_INTERVAL = int(environ.get("time_interval")) # seconds
+BROKER = environ.get("brokers")
 
 
 def kafka_writer(data: pd.DataFrame, topic: str):
@@ -66,6 +59,8 @@ def get_data(path: str) -> pd.DataFrame:
         data.drop_duplicates(inplace=True)
         data.dropna(inplace=True)
 
+        # TODO: rmv index from df
+
         logger.log_i("Get data",
                      f"Finished getting data. Elapsed time {datetime.now()-start}")
 
@@ -78,5 +73,5 @@ def get_data(path: str) -> pd.DataFrame:
 
 
 if __name__ == '__main__':
-    data = get_data(path=DATA_PATH)
+    data = get_data(path="/data.csv")
     kafka_writer(data=data, topic=TOPIC)
