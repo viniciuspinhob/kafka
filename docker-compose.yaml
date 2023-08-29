@@ -6,6 +6,8 @@ services:
     image: kafka_from_csv:qa
     hostname: kafka_client
     container_name: kafka_from_csv
+    depends_on:
+      - kafka
     # environment:
     #   topic_name: 'my_topic'
     #   time_interval: '5'
