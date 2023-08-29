@@ -1,4 +1,4 @@
-APP_NAME = kafka_client
+APP_NAME = kafka_from_csv
 VERSION = qa
 
 ## Delete all compiled Python files
