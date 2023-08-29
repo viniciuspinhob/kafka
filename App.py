@@ -9,14 +9,14 @@ from src.Kafka_producer import KafkaProducer
 from util import logger
 
 
-DATA_SOURCE = environ("data_source")
 # TODO: read data from outside the container
 DATA_PATH = environ("data_path")
 TOPIC = environ("topic_name")
+MSG_INTERVAL = int(environ("time_interval")) # seconds
 BROKERS = "docker.host.internal:9092"
 
 
-async def main():
+def main():
     data = get_data(path=DATA_PATH)
     kafka_writer(data=data, topic=TOPIC)
 
@@ -35,7 +35,7 @@ async def kafka_writer(data: pd.DataFrame, topic: str):
                 message=r.to_dict(),
                 topic=topic
             )
-            await asyncio.sleep(5)
+            await asyncio.sleep(MSG_INTERVAL)
 
     except Exception as e:
         logger.log_e("kafka Writer",
