@@ -1,5 +1,5 @@
 import json
-from aiokafka import AIOKafkaProducer
+from kafka import KafkaProducer
 
 from util import logger
 
@@ -8,16 +8,16 @@ class KafkaProducer:
     This class produces some messages in a given kafka topic.
 
     Methods:
-        write(): Writes a data package in a given kafka topic
+        write(): Writes a message in a given kafka topic
     """
 
     @classmethod
-    async def write(connection: AIOKafkaProducer, message: dict, topic: str) -> bool:
+    def write(self, connection: KafkaProducer, message: dict, topic: str) -> bool:
         """
-        Writes a Message box to a Kafka topic.
+        Writes a message to a Kafka topic.
 
         Args:
-            connection (AIOKafkaProducer): The kafka producer client.
+            connection (KafkaProducer): The kafka producer client.
             message (dict): The message to be written.
             topic (str): Topic where message should be written.
 
@@ -27,8 +27,12 @@ class KafkaProducer:
         try:
         
             # Send data to the Kafka topic
-            await connection.send_and_wait(topic, json.dumps(message))
-            logger.log_i(f"kafka writer", "Successfully wrote message to Kafka")
+            connection.send(
+                topic=topic,
+                value=json.dumps(message)
+            )
+
+            logger.log_i(f"kafka writer", f"Successfully wrote message to Kafka topic: {topic}")
 
         except Exception as e:
             logger.log_e('Kafka_producer', f'Write exception: {e}')
