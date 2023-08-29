@@ -10,6 +10,7 @@ from util import logger
 
 
 DATA_SOURCE = environ("data_source")
+# TODO: read data from outside the container
 DATA_PATH = environ("data_path")
 TOPIC = environ("topic_name")
 BROKERS = "docker.host.internal:9092"
