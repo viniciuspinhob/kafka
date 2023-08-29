@@ -3,7 +3,7 @@ from kafka import KafkaProducer
 
 from util import logger
 
-class KafkaProducer:
+class KafkaWriter:
     """
     This class produces some messages in a given kafka topic.
 
@@ -29,7 +29,7 @@ class KafkaProducer:
             # Send data to the Kafka topic
             connection.send(
                 topic=topic,
-                value=json.dumps(message)
+                value=message
             )
 
             logger.log_i(f"kafka writer", f"Successfully wrote message to Kafka topic: {topic}")

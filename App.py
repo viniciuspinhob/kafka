@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 
 from src.Kafka_connection import KafkaConnector
-from src.Kafka_producer import KafkaProducer
+from src.Kafka_producer import KafkaWriter
 
 from util import logger
 
@@ -36,7 +36,7 @@ def kafka_writer(data: pd.DataFrame, topic: str):
                      f"Created kafka producer: {kafka_producer}")
 
             for _, r in data.iterrows():
-                KafkaProducer.write(
+                KafkaWriter.write(
                     connection=kafka_producer,
                     message=r.to_dict(),
                     topic=topic
